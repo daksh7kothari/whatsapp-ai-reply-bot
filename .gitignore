@@ -2,3 +2,7 @@ node_modules/
 .env
 .wwebjs_auth/
 .wwebjs_cache/
+
+# Exported WhatsApp chats — private, never commit real conversations
+chat-history/*
+!chat-history/.gitkeep

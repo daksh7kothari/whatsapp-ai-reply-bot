@@ -14,6 +14,7 @@ const {
   GROQ_MODEL = "llama-3.3-70b-versatile",
   TARGET_CHAT_ID,
   REPLY_DELAY_SECONDS = "0",
+  CHAT_HISTORY_MAX_CHARS = "20000",
 } = process.env;
 
 const provider = AI_PROVIDER.toLowerCase();
@@ -37,6 +38,30 @@ if (!TARGET_CHAT_ID) {
 const instructionsPath = path.join(__dirname, "instructions.md");
 function loadInstructions() {
   return fs.readFileSync(instructionsPath, "utf8");
+}
+
+// Loads any exported WhatsApp chats dropped in chat-history/ so the model
+// knows past conversation context. Kept to the last CHAT_HISTORY_MAX_CHARS
+// characters (most recent = bottom of a WhatsApp .txt export) to avoid
+// blowing the model's context window / your token bill.
+const chatHistoryDir = path.join(__dirname, "chat-history");
+function loadChatHistoryContext() {
+  if (!fs.existsSync(chatHistoryDir)) return "";
+
+  const files = fs
+    .readdirSync(chatHistoryDir)
+    .filter((f) => f.toLowerCase().endsWith(".txt"));
+  if (files.length === 0) return "";
+
+  const combined = files
+    .map((f) => fs.readFileSync(path.join(chatHistoryDir, f), "utf8"))
+    .join("\n\n");
+
+  const maxChars = Number(CHAT_HISTORY_MAX_CHARS) || 20000;
+  const trimmed =
+    combined.length > maxChars ? combined.slice(-maxChars) : combined;
+
+  return `\n\nHere is past conversation history for context (may be truncated to the most recent part):\n\n${trimmed}`;
 }
 
 const anthropic = provider === "anthropic" ? new Anthropic({ apiKey: ANTHROPIC_API_KEY }) : null;
@@ -101,7 +126,7 @@ client.on("message", async (message) => {
 });
 
 async function getAiReply() {
-  const system = loadInstructions();
+  const system = loadInstructions() + loadChatHistoryContext();
 
   if (provider === "groq") {
     const response = await groq.chat.completions.create({

@@ -101,6 +101,24 @@ Save the file.
 
 Open `instructions.md` in a text editor. This is where you tell the bot **how to talk as you** — tone, what to say, what not to say, facts about yourself, etc. It's already got a starter template — edit it however you like. Plain English, no code.
 
+### 8b. (Optional) Give it your past chat history for context
+
+Want the bot to know how you and this person have talked before, so replies sound more like an actual continuation instead of a stranger? Export the chat and drop it in:
+
+```
+chat-history/
+```
+
+How to export from WhatsApp:
+1. Open the chat on your phone → tap the three dots (⋮) → **More** → **Export chat**
+2. Choose **Without Media** (keeps it small, text only)
+3. Send/save the resulting `.txt` file to your computer
+4. Move it into the `chat-history/` folder in this project
+
+The bot automatically reads every `.txt` file in that folder and feeds it to the AI as background context. No restart needed if you swap the file before starting the bot.
+
+⚠️ This folder is already excluded from git (`.gitignore`) so your private conversations never get uploaded to GitHub — keep it that way, don't force-add files in there.
+
 ### 9. Start the bot
 
 ```
@@ -129,10 +147,10 @@ Not in this version — on purpose, so you can test it safely on one chat first.
 Yes — just edit `instructions.md` anytime and restart the bot (`Ctrl+C` then `npm start` again).
 
 **Does it read my old messages?**
-No, it only reacts to new messages that arrive after it's running.
+Not automatically — it only reacts to new messages that arrive after it's running. If you want it to know your chat history, export it and drop it in `chat-history/` (see step 8b).
 
 **Is my WhatsApp data sent anywhere?**
-Only the message text from your chosen chat is sent to the AI provider (Anthropic or Groq) you picked, to generate a reply. Nothing else leaves your computer.
+Only the message text from your chosen chat (plus anything you put in `chat-history/`) is sent to the AI provider (Anthropic or Groq) you picked, to generate a reply. Nothing else leaves your computer.
 
 **"QR code expired" or bot won't connect?**
 Close the terminal, delete the `.wwebjs_auth` folder in the project, and run `npm start` again to re-scan.
@@ -149,6 +167,7 @@ This is a known bug in the underlying library ([whatsapp-web.js issue #5733](htt
 | `index.js` | The bot itself — connects to WhatsApp, listens for messages, gets AI replies, sends them |
 | `list-chats.js` | Helper script to find your chat's ID |
 | `instructions.md` | Your instructions for how the bot should reply — edit this freely |
+| `chat-history/` | Drop exported WhatsApp `.txt` chats here for the bot to use as context (gitignored) |
 | `.env` | Your private settings (API keys, target chat) — **never share this file or commit it to git** |
 
 ---
