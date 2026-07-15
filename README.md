@@ -73,14 +73,13 @@ npm run list-chats
 A QR code will appear in your terminal. On your phone:
 **WhatsApp → Settings → Linked Devices → Link a Device** → scan the QR code.
 
-After scanning, it prints a list of all your chats with an ID next to each, like:
+Once connected, it'll tell you to **send any message in the chat you want to target** — message yourself, or ask the other person to text you. As soon as that message arrives, it prints the chat's ID, like:
 
 ```
 [DM]    911234567890@c.us  —  Mom
-[GROUP] 12345-67890@g.us   —  College Friends
 ```
 
-Copy the ID of the chat you want (e.g. `911234567890@c.us`).
+Copy that ID (e.g. `911234567890@c.us`). Then press `Ctrl+C` to stop this script.
 
 ### 7. Set your target chat
 
@@ -137,6 +136,9 @@ Only the message text from your chosen chat is sent to the AI provider (Anthropi
 
 **"QR code expired" or bot won't connect?**
 Close the terminal, delete the `.wwebjs_auth` folder in the project, and run `npm start` again to re-scan.
+
+**Getting a crash with `t: t` or `r: r` in the error?**
+This is a known bug in the underlying library ([whatsapp-web.js issue #5733](https://github.com/pedroslopez/whatsapp-web.js/issues/5733)) — happens when WhatsApp updates their website faster than the library can keep up, mostly on group chats. Fix: target a **direct message (DM)** chat instead of a group, and run `npm install whatsapp-web.js@latest` to get the newest patch.
 
 ---
 

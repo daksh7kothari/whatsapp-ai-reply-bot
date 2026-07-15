@@ -65,6 +65,12 @@ client.on("ready", () => {
 client.on("auth_failure", (msg) => console.error("Auth failure:", msg));
 client.on("disconnected", (reason) => console.log("Disconnected:", reason));
 
+// whatsapp-web.js occasionally throws internal errors when WhatsApp Web
+// changes its frontend. Log and keep running instead of crashing the bot.
+process.on("unhandledRejection", (err) => {
+  console.error("Ignored a background error, bot is still running:", err?.message || err);
+});
+
 client.on("message", async (message) => {
   try {
     if (message.from !== TARGET_CHAT_ID) return; // only the one selected chat
