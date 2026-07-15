@@ -77,14 +77,11 @@ client.on("message", async (message) => {
     if (message.fromMe) return; // don't react to your own messages
     if (message.isStatus || message.type !== "chat") return; // text only for MVP
 
-    const chat = await message.getChat();
     const userText = message.body?.trim();
     if (!userText) return;
 
     history.push({ role: "user", content: userText });
     history = history.slice(-MAX_HISTORY);
-
-    await chat.sendStateTyping();
 
     const delaySec = Number(REPLY_DELAY_SECONDS) || 0;
     if (delaySec > 0) await new Promise((r) => setTimeout(r, delaySec * 1000));
@@ -95,7 +92,9 @@ client.on("message", async (message) => {
     history.push({ role: "assistant", content: reply });
     history = history.slice(-MAX_HISTORY);
 
-    await chat.sendMessage(reply);
+    // Send directly by chat ID instead of message.getChat() — the latter
+    // fetches a full chat model and crashes on some current WhatsApp Web builds.
+    await client.sendMessage(TARGET_CHAT_ID, reply);
   } catch (err) {
     console.error("Error handling message:", err);
   }

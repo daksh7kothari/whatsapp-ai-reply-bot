@@ -26,17 +26,30 @@ client.on("ready", () => {
 });
 
 // message_create fires for both incoming AND outgoing messages, so messaging
-// yourself works too.
+// yourself works too. We read the chat ID straight off the message object
+// (message.fromMe ? message.to : message.from) instead of calling
+// message.getChat() — that method crashes on some current WhatsApp Web
+// builds (upstream bug: pedroslopez/whatsapp-web.js#5733).
 client.on("message_create", async (message) => {
   try {
-    const chat = await message.getChat();
-    const id = chat.id._serialized;
-    if (seen.has(id)) return;
-    seen.add(id);
-    console.log(`${chat.isGroup ? "[GROUP]" : "[DM]   "} ${id}  —  ${chat.name}`);
+    const chatId = message.fromMe ? message.to : message.from;
+    if (!chatId || seen.has(chatId)) return;
+    seen.add(chatId);
+
+    const isGroup = chatId.endsWith("@g.us");
+
+    let name = chatId;
+    try {
+      const contact = await message.getContact();
+      name = contact.pushname || contact.name || contact.number || chatId;
+    } catch {
+      // best-effort only — the ID below is what actually matters
+    }
+
+    console.log(`${isGroup ? "[GROUP]" : "[DM]   "} ${chatId}  —  ${name}`);
     console.log("Copy this ID into TARGET_CHAT_ID in your .env file.\n");
   } catch (err) {
-    console.log("Couldn't read that chat's info (WhatsApp Web internals changed again — try a direct message instead of a group).");
+    console.log("Couldn't read that message, try sending another one:", err?.message || err);
   }
 });
 
